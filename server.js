@@ -10,7 +10,7 @@ const portHTTP = 8000
 var timestamp
 
 var dataArr = []
-
+var bufArr =[]
 var dataSend = new Buffer.alloc(0)
 
 
@@ -26,36 +26,35 @@ function removeDuplicate() {
     }, []);
 }
 
-function Final() {
+function isPacketValid() {
 
-
-    var arrBuf = []
-
-
-    for (let i = 0; i < dataArr.length; i++) {
-        arrBuf.push(dataArr[i].data)
-    }
-
-    var startBuf = arrBuf[0]
-    var endBuf = arrBuf[arrBuf.length-1]
+    var startBuf = bufArr[0]
+    var endBuf = bufArr[bufArr.length - 1]
 
     if (startBuf.length == (1460 - 12) &&
-    startBuf[0] == 255 &&
-    startBuf[1] == 216 &&
-    startBuf[2] == 255) { // FF D8 FF          
+        startBuf[0] == 255 &&
+        startBuf[1] == 216 &&
+        startBuf[2] == 255) { // FF D8 FF          
 
         if (endBuf.length >= 2 &&
             endBuf.length < (1460 - 12) &&
-            endBuf[endBuf.length-2] == 255 &&
+            endBuf[endBuf.length - 2] == 255 &&
             endBuf[endBuf.length - 1] == 217) { // FF D9
 
-            dataSend = Buffer.concat(arrBuf);
+            return true 
 
         }
     }
+    return false
 
 }
 
+function setBufArr(){
+    bufArr = []
+    for (let i = 0; i < dataArr.length; i++) {
+        bufArr.push(dataArr[i].data)
+    }
+}
 function reOrder() {
 
     dataArr.sort(function (a, b) {
@@ -71,22 +70,15 @@ function reOrder() {
 serverUDP.on('message', (message, info) => {
     var rtpPacket = new RtpPacket(new KaitaiStream(message));
 
-    // console.log(rtpPacket.timestamp)
     if (rtpPacket.timestamp > timestamp) {
         console.log("\ntimestamp: ", timestamp)
         removeDuplicate()
-        reOrder()
-        Final()
+        reOrder()       
+        setBufArr()
+        if(isPacketValid()) dataSend = Buffer.concat(bufArr);
         dataArr = []
-        dataArr.push({ "sq": rtpPacket.sequenceNumber, "data": rtpPacket.data })
     }
-    if (rtpPacket.timestamp < timestamp) {
-
-    }
-    if (rtpPacket.timestamp == timestamp) {
-
-
-
+    if (rtpPacket.timestamp >= timestamp) {
         dataArr.push({ "sq": rtpPacket.sequenceNumber, "data": rtpPacket.data })
     }
     timestamp = rtpPacket.timestamp
