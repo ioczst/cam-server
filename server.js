@@ -14,8 +14,7 @@ var bufArr =[]
 var dataSend = new Buffer.alloc(0)
 
 
-
-function removeDuplicate() {
+function removeDuplicatedPacket() {
     dataArr = dataArr.reduce((acc, current) => {
         const x = acc.find(item => item.sq === current.sq);
         if (!x) {
@@ -40,9 +39,7 @@ function isPacketValid() {
             endBuf.length < (1460 - 12) &&
             endBuf[endBuf.length - 2] == 255 &&
             endBuf[endBuf.length - 1] == 217) { // FF D9
-
-            return true 
-
+            return true
         }
     }
     return false
@@ -55,8 +52,8 @@ function setBufArr(){
         bufArr.push(dataArr[i].data)
     }
 }
-function reOrder() {
 
+function reOrderPacket() {
     dataArr.sort(function (a, b) {
         if (a.sq < b.sq) return -1;
         if (a.sq > b.sq) return 1;
@@ -72,8 +69,8 @@ serverUDP.on('message', (message, info) => {
 
     if (rtpPacket.timestamp > timestamp) {
         console.log("\ntimestamp: ", timestamp)
-        removeDuplicate()
-        reOrder()       
+        removeDuplicatedPacket()
+        reOrderPacket()       
         setBufArr()
         if(isPacketValid()) dataSend = Buffer.concat(bufArr);
         dataArr = []
