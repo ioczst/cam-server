@@ -1,5 +1,5 @@
 {
-  "name": "rtp",
+  "name": "udp_server",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -9,7 +9,5 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "kaitai-struct": "^0.10.0"
-  }
+  "dependencies": {}
 }
